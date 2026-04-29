@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estabilidade de Antimicrobianos — Hospital da Mulher D. Creuza Pires</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --accent: #00c9a7;
+    --accent2: #3b82f6;
+    --accent3: #f59e0b;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim: #94a3b8;
+    --danger: #ef4444;
+    --mav: #f97316;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,15,26,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 64px;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    letter-spacing: -0.02em;
+    color: var(--accent);
+    white-space: nowrap;
+  }
+
+  .logo span { color: var(--text-dim); font-weight: 400; }
+
+  #searchInput {
+    flex: 1;
+    max-width: 480px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color .2s;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 0.7rem center;
+  }
+
+  #searchInput:focus { border-color: var(--accent); }
+
+  .pill-count {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* ── GRID ── */
+  .main {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 1.5rem 0;
+    max-height: calc(100vh - 64px);
+    position: sticky;
+    top: 64px;
+  }
+
+  .sidebar-section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.5rem 1.25rem;
+  }
+
+  .drug-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 0.55rem 1.25rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background .15s;
+    border-left: 2px solid transparent;
+  }
+
+  .drug-btn:hover { background: var(--surface2); }
+  .drug-btn.active {
+    background: var(--surface2);
+    border-left-color: var(--accent);
+  }
+
+  .drug-btn-name {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .drug-btn-dose {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+
+  .mav-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--mav);
+    flex-shrink: 0;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail {
+    padding: 2rem 2.5rem;
+    overflow-y: auto;
+  }
+
+  .detail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    gap: 1rem;
+    opacity: .4;
+  }
+
+  .detail-placeholder svg { width: 48px; height: 48px; stroke: var(--accent); }
+  .detail-placeholder p { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--text-muted); }
+
+  .drug-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .drug-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .drug-title .dose-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--accent);
+    display: block;
+    margin-top: 0.3rem;
+  }
+
+  .mav-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: rgba(249,115,22,.12);
+    border: 1px solid rgba(249,115,22,.3);
+    color: var(--mav);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── BRAND TABS ── */
+  .brands-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .brand-tab {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.9rem;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    transition: all .15s;
+  }
+
+  .brand-tab:hover { border-color: var(--accent2); color: var(--text); }
+  .brand-tab.active {
+    background: rgba(59,130,246,.12);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* ── CARDS ── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 900px) { .cards-grid { grid-template-columns: 1fr; } }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .info-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+  }
+
+  .info-card.reconst::before { background: var(--accent); }
+  .info-card.estab-r::before { background: var(--accent3); }
+  .info-card.dil::before { background: var(--accent2); }
+  .info-card.estab-d::before { background: #a855f7; }
+
+  .card-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .info-card.reconst .card-label { color: var(--accent); }
+  .info-card.estab-r .card-label { color: var(--accent3); }
+  .info-card.dil .card-label { color: var(--accent2); }
+  .info-card.estab-d .card-label { color: #a855f7; }
+
+  .card-content {
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    line-height: 1.7;
+  }
+
+  .card-content strong { color: var(--text); font-weight: 500; }
+
+  .via-tag {
+    display: inline-block;
+    background: rgba(0,201,167,.1);
+    border: 1px solid rgba(0,201,167,.2);
+    color: var(--accent);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    margin-right: 0.3rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .dash { color: var(--text-muted); font-style: italic; font-size: 0.8rem; }
+
+  /* ── ICON ── */
+  .card-icon {
+    width: 16px; height: 16px; vertical-align: middle;
+  }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+
+  /* ── FOOTER ── */
+  .footer-ref {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 200;
+    background: rgba(10,15,26,0.97);
+    border-top: 1px solid var(--border);
+    padding: 0.45rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .footer-ref-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .footer-ref-text strong { color: var(--text-dim); }
+
+  .footer-modified {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  /* compensar rodapé fixo */
+  .main { padding-bottom: 52px; }
+
+  /* ── LOGO HEADER ── */
+  .header-logo-img {
+    height: 34px;
+    width: auto;
+    display: block;
+    background: #fff;
+    border-radius: 6px;
+    padding: 4px 8px;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Animate in */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in { animation: fadeUp .3s ease forwards; }
+</style>
+</head>
+<body>
+
+<header>
+  <img class="header-logo-img" src="data:image/png;base64,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" alt="Hospital da Mulher D. Creuza Pires">
+  <div class="logo" style="font-size:1rem; color:var(--text); font-weight:700;">Estabilidade de Antimicrobianos</div>
+  <input type="text" id="searchInput" placeholder="Buscar medicamento..." oninput="filterDrugs(this.value)">
+  <div class="pill-count" id="pillCount"></div>
+</header>
+
+<div class="main">
+  <aside class="sidebar" id="sidebar"></aside>
+  <section class="detail" id="detail">
+    <div class="detail-placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+      <p>Selecione um medicamento</p>
+    </div>
+  </section>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const drugs = [
+  {
+    name: "Aciclovir 250 mg",
+    mav: false,
+    brands: [
+      {
+        label: "União Química / Fresenius",
+        via: "EV",
+        reconstituicao: "10 mL AD → USO IMEDIATO\n10 mL SF 0,9% → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9%\nConc. usual: 5 mg/mL\nConc. máx. (pediátrica): 7 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Amicacina 100 mg / 2 mL\n500 mg / 2 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Teuto",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "SF 0,9%\nConc. usual: 0,25–5 mg/mL\nSG 5%\nConc. máx. (pediátrica): 10 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Ampicilina 500 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Blau",
+        via: "EV / IM",
+        reconstituicao: "3 mL AD (VF = 3,1 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 30 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Ampicilina 1 g",
+    mav: false,
+    brands: [
+      {
+        label: "Blau",
+        via: "EV / IM",
+        reconstituicao: "3 mL AD (VF = 3,4 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 30 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "Aurobindo / Bio Chimica",
+        via: "EV / IM",
+        reconstituicao: "3 mL AD (VF = 3,4 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 30 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Ampicilina + Sulbactam 1,5 g",
+    mav: false,
+    brands: [
+      {
+        label: "Mylan",
+        via: "EV / IM",
+        reconstituicao: "IM: 3,2 mL AD/LIDO 0,5% (VF=4 mL) → 1h TA\nEV: 3,2 mL AD (VF=4 mL) ou 3,2 mL SF 0,9% (VF=4 mL) → 1h TA",
+        estab_reconst: "1h TA",
+        diluicao: "AD: Conc. máx. 30 mg/mL (ampicilina)\nSF 0,9%",
+        estab_dil: "8h TA (até 25°C) / 48h REF"
+      },
+      {
+        label: "Fresenius Kabi / Aurobindo",
+        via: "EV / IM",
+        reconstituicao: "IM: 3,0 mL AD/LIDO 0,5% (VF=4 mL) → 1h TA\nEV: 3,0 mL AD / SF 0,9% / Ringer Lactato / SG 5% (VF=4 mL) → 1h TA",
+        estab_reconst: "1h TA",
+        diluicao: "AD / SF 0,9% / Ringer Lactato / SG 5%\nConc. máx. 30 mg/mL (ampicilina); SG5% → 20 mg/mL (ampicilina)",
+        estab_dil: "AD/SF: 48h REF; Ringer: 24h REF; SG5%: 2h TA"
+      }
+    ]
+  },
+  {
+    name: "Ampicilina + Sulbactam 3 g",
+    mav: false,
+    brands: [
+      {
+        label: "Mylan",
+        via: "EV / IM",
+        reconstituicao: "IM: 6,4 mL AD/LIDO 0,5% (VF=8 mL) → 1h TA\nEV: 6,4 mL AD (VF=8 mL) ou 6,4 mL SF 0,9% (VF=8 mL) → 1h TA",
+        estab_reconst: "1h TA",
+        diluicao: "AD: Conc. máx. 30 mg/mL (ampicilina)\nSF 0,9%",
+        estab_dil: "8h TA (até 25°C) / 48h REF"
+      },
+      {
+        label: "Fresenius Kabi / Aurobindo",
+        via: "EV / IM",
+        reconstituicao: "IM: 6,0 mL AD/LIDO 0,5% (VF=8 mL) → 1h TA\nEV: 6,0 mL AD / SF 0,9% / Ringer Lactato / SG 5% (VF=8 mL) → 1h TA",
+        estab_reconst: "1h TA",
+        diluicao: "AD / SF 0,9% / Ringer Lactato / SG 5%\nConc. máx. 30 mg/mL (ampicilina); SG5% → 20 mg/mL (ampicilina)",
+        estab_dil: "AD/SF: 8h TA / 48h REF; Ringer: 8h TA / 24h REF; SG5%: 4h TA"
+      }
+    ]
+  },
+  {
+    name: "Anfotericina B Convencional 50 mg",
+    mav: true,
+    brands: [
+      {
+        label: "Cristália",
+        via: "EV",
+        reconstituicao: "10 mL AD (diluente próprio) → 24h TA (protegido da luz) / 7 dias REF (protegido da luz)",
+        estab_reconst: "24h TA / 7 dias REF (protegido da luz)",
+        diluicao: "SG 5%\nConc. máx. adulto: 0,1 mg/mL | Pediatria acesso periférico: 0,1 mg/mL | Acesso central: 0,5 mg/mL",
+        estab_dil: "USO IMEDIATO (protegido da luz)"
+      }
+    ]
+  },
+  {
+    name: "Anfotericina B Lipossomal 50 mg",
+    mav: true,
+    brands: [
+      {
+        label: "United Medical",
+        via: "EV",
+        reconstituicao: "12 mL AD → 24h REF",
+        estab_reconst: "24h REF",
+        diluicao: "SG 5%\nConc. usual: 0,2–2 mg/mL\nConc. máx.: 2 mg/mL",
+        estab_dil: "24h REF (protegido da luz)"
+      }
+    ]
+  },
+  {
+    name: "Anfotericina B Complexo Lipídico 50 mg",
+    mav: true,
+    brands: [
+      {
+        label: "BSV / Teva (100 mg) / Cristália (50 mg)",
+        via: "EV",
+        reconstituicao: "USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SG 5%\nConc. usual: 1 mg/mL\nConc. máx.: 2 mg/mL",
+        estab_dil: "USO IMEDIATO (protegido da luz)"
+      }
+    ]
+  },
+  {
+    name: "Azitromicina 500 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma / ABL",
+        via: "EV",
+        reconstituicao: "4,8 mL AD (VF = 5 mL) → 24h TA",
+        estab_reconst: "24h TA",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. usual: 1–2 mg/mL\nConc. máx.: 2 mg/mL",
+        estab_dil: "24h TA / 7 dias REF"
+      }
+    ]
+  },
+  {
+    name: "Benzilpenicilina Benzatina 1.200.000 UI / 4 mL",
+    mav: true,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "IM",
+        reconstituicao: "SUSPENSÃO PRONTA PARA USO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "—",
+        estab_dil: "—"
+      },
+      {
+        label: "Teuto",
+        via: "IM",
+        reconstituicao: "3,2 mL AD (VF = 4 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "—",
+        estab_dil: "—"
+      }
+    ]
+  },
+  {
+    name: "Benzilpenicilina Potássica 5.000.000 UI",
+    mav: true,
+    brands: [
+      {
+        label: "Blau",
+        via: "EV",
+        reconstituicao: "10 mL AD (VF = 12 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 25.000–100.000 UI/mL\nConc. máx.: 150.000 UI/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Cefazolina 1 g",
+    mav: false,
+    brands: [
+      {
+        label: "ABL / União Química / Blau",
+        via: "EV / IM",
+        reconstituicao: "IM: 2,5 mL AD/LIDO 0,5% (VF=3,2 mL) → 12h TA / 24h REF (protegido da luz)\nEV: 10 mL AD (VF=10,6 mL) → 12h TA / 24h REF (protegido da luz)",
+        estab_reconst: "IM: 12h TA / 24h REF | EV: 12h TA / 24h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 9 mg/mL\nConc. máx.: 20 mg/mL\nRinger Lactato",
+        estab_dil: "12h TA (protegida) / 24h TA (protegida) | Ringer: USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Cefepima 1 g",
+    mav: false,
+    brands: [
+      {
+        label: "Teuto",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD/SF/SG5% (VF=4,4 mL) → 4h TA / 72h REF\nEV: 10 mL AD (VF=11,4 mL) / 10 mL SF 0,9% (VF=11,4 mL) / 10 mL SG 5% (VF=11,4 mL) → USO IMEDIATO",
+        estab_reconst: "IM: 4h TA / 72h REF | EV: USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. máx.: 40 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "ABL",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD/SF/SG5% (VF=4,4 mL) → 4h TA / 72h REF\nEV: 10 mL AD (VF=11,4 mL) / 10 mL SF 0,9% (VF=11,4 mL) / 10 mL SG 5% (VF=11,4 mL) → 4h TA / 72h REF",
+        estab_reconst: "IM: 4h TA / 72h REF | EV: 4h TA / 72h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 40 mg/mL",
+        estab_dil: "4h TA / 72h REF"
+      },
+      {
+        label: "Aurobindo / Bio Chimica",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD/SF/SG5% (VF=4,4 mL) → 12h TA / 72h REF\nEV: 10 mL AD (VF=11,4 mL) / 10 mL SF 0,9% (VF=11,4 mL) / 10 mL SG 5% (VF=11,4 mL) → 12h TA / 72h REF",
+        estab_reconst: "12h TA / 72h REF",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato | SGF 5%+0,9%\nConc. máx.: 40 mg/mL",
+        estab_dil: "12h TA / 72h REF"
+      }
+    ]
+  },
+  {
+    name: "Cefepima 2 g",
+    mav: false,
+    brands: [
+      {
+        label: "Teuto",
+        via: "EV / IM",
+        reconstituicao: "EV: 10 mL AD (VF=12,8 mL) / 10 mL SF 0,9% (VF=12,8 mL) / 10 mL SG 5% (VF=12,8 mL) → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. máx.: 40 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "ABL",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD/SF/SG5% (VF=4,8 mL) → 4h TA / 72h REF (protegido da luz)\nEV: 10 mL AD (VF=12,8 mL) / 10 mL SF 0,9% / 10 mL SG 5% → 4h TA / 72h REF",
+        estab_reconst: "IM: 4h TA / 72h REF | EV: 4h TA / 72h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 40 mg/mL",
+        estab_dil: "4h TA / 72h REF"
+      },
+      {
+        label: "Aurobindo / Bio Chimica",
+        via: "EV / IM",
+        reconstituicao: "EV: 10 mL AD (VF=12,8 mL) / 10 mL SF 0,9% (VF=12,8 mL) / 10 mL SG 5% (VF=12,8 mL) → 12h TA / 72h REF",
+        estab_reconst: "12h TA / 72h REF",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato | SGF 5%+0,9%\nConc. máx.: 40 mg/mL",
+        estab_dil: "12h TA / 72h REF"
+      }
+    ]
+  },
+  {
+    name: "Ceftriaxona 1 g",
+    mav: false,
+    brands: [
+      {
+        label: "Blau / Eurofarma",
+        via: "EV / IM",
+        reconstituicao: "IM: 3,5 mL LIDO 1% (VF=4,22 mL) → 6h TA (até 25°C) / 24h REF\nEV: 10 mL AD (VF=10,72 mL) → 6h TA (até 25°C) / 24h REF",
+        estab_reconst: "IM: 6h TA / 24h REF | EV: 6h TA / 24h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 40 mg/mL\nAD (volume máximo: 40 mL)",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "ABL",
+        via: "EV / IM",
+        reconstituicao: "IM: 3,5 mL LIDO 1% (VF=4,2 mL) → 6h TA / 24h REF\nEV: 10 mL AD (VF=11 mL) → 6h TA / 24h REF",
+        estab_reconst: "6h TA / 24h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 40 mg/mL",
+        estab_dil: "6h TA / 24h REF"
+      }
+    ]
+  },
+  {
+    name: "Ciprofloxacino 200 mg/100 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Fresenius Kabi / Halex Istar",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "—",
+        estab_dil: "—"
+      }
+    ]
+  },
+  {
+    name: "Ciprofloxacino 400 mg/200 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Fresenius Kabi / Halex Istar",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "—",
+        estab_dil: "—"
+      }
+    ]
+  },
+  {
+    name: "Clindamicina 600 mg / 4 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Hipolabor / Hypofarma",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. máx.: 18 mg/mL",
+        estab_dil: "24h TA / 48h REF"
+      }
+    ]
+  },
+  {
+    name: "Fluconazol 200 mg/100 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Cristália",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "PRONTO PARA USO",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+
+  {
+    name: "Gentamicina 40 mg / 2 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Fresenius Kabi",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 1–4 mg/mL\nConc. máx.: 10 mg/mL",
+        estab_dil: "2h TA"
+      }
+    ]
+  },
+  {
+    name: "Gentamicina 80 mg / 2 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Hypofarma",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 1–4 mg/mL\nConc. máx.: 10 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Linezolida 600 mg/300 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "—",
+        estab_dil: "—"
+      }
+    ]
+  },
+  {
+    name: "Meropeném 500 mg / 1 g",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma / Blau / Neo Química",
+        via: "EV",
+        reconstituicao: "500 mg: 10 mL AD → 3h TA (até 25°C) / 16h REF\n1 g: 20 mL AD → 3h TA (até 25°C) / 16h REF",
+        estab_reconst: "500 mg: 3h TA / 16h REF | 1 g: 3h TA / 16h REF",
+        diluicao: "SF 0,9%: Conc. usual 1–20 mg/mL; Conc. máx. 20 mg/mL\nSG 5%: USO IMEDIATO",
+        estab_dil: "SF: 3h TA (até 25°C) / 15h REF | SG5%: USO IMEDIATO"
+      },
+      {
+        label: "ABL",
+        via: "EV",
+        reconstituicao: "500 mg: 10 mL AD → 2h TA / 12h REF\n1 g: 20 mL AD → 2h TA / 12h REF",
+        estab_reconst: "2h TA / 12h REF",
+        diluicao: "SF 0,9%: Conc. usual 1–20 mg/mL; Conc. máx. 20 mg/mL\nSG 5%: USO IMEDIATO",
+        estab_dil: "SF: 4h TA / 24h REF | SG5%: USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Metronidazol 500 mg/100 mL",
+    mav: false,
+    brands: [
+      {
+        label: "Farmace",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "—",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Micafungina 50 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Astellas",
+        via: "EV",
+        reconstituicao: "5 mL SF 0,9% → 24h TA (até 25°C)\n5 mL SG 5% → 24h TA (até 25°C)",
+        estab_reconst: "24h TA (até 25°C – protegido da luz)",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 0,5–1 mg/mL\nConc. máx. acesso periférico: 1,5 mg/mL | Acesso central: 4 mg/mL",
+        estab_dil: "24h TA (até 25°C – protegido da luz)"
+      }
+    ]
+  },
+  {
+    name: "Moxifloxacino 400 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "EV",
+        reconstituicao: "—",
+        estab_reconst: "—",
+        diluicao: "—",
+        estab_dil: "—"
+      }
+    ]
+  },
+  {
+    name: "Oxacilina 500 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Fresenius",
+        via: "EV / IM",
+        reconstituicao: "IM: 2,7 mL AD (VF=3 mL) → 6h TA (protegida) / 6h REF (protegida)\nEV: 5 mL AD (VF=5,37 mL) → 72h TA / 7 dias REF | 5 mL SF 0,9% (VF=5,37 mL) → 72h TA / 7 dias REF",
+        estab_reconst: "IM: 6h TA / 6h REF (protegida da luz) | EV: 72h TA / 7 dias REF",
+        diluicao: "SF 0,9% | SG 5% | SGF 5%+0,9% | Ringer Lactato\nConc. usual: 0,5–2 mg/mL\nConc. máx.: 40 mg/mL",
+        estab_dil: "6h TA / USO IMEDIATO (SG5%)"
+      },
+      {
+        label: "Blau",
+        via: "EV / IM",
+        reconstituicao: "IM: 2,7 mL AD (VF=3 mL) → 6h TA (protegida) / 6h REF (protegida)\nEV: 5 mL AD (VF=5 mL) → 6h REF (protegida da luz) | 5 mL SF 0,9% → 6h REF (protegida da luz)",
+        estab_reconst: "IM: 6h TA / 6h REF (protegida) | EV: 6h REF (protegida)",
+        diluicao: "SF 0,9% | SG 5% | SGF 5%+0,9% | Ringer Lactato\nConc. usual: 0,5–2 mg/mL\nConc. máx.: 40 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Piperacilina + Tazobactam 4,5 g",
+    mav: false,
+    brands: [
+      {
+        label: "Mylan",
+        via: "EV",
+        reconstituicao: "20 mL AD (VF=23 mL) → 24h TA / 48h REF\n20 mL SF 0,9% (VF=23 mL) → 24h TA / 48h REF\n20 mL SG 5% (VF=23 mL) → 24h TA / 48h REF",
+        estab_reconst: "24h TA / 48h REF",
+        diluicao: "SF 0,9% | SG 5% | AD (vol. máx. 50 mL)\nConc. usual: 20–80 mg/mL (piperacilina)\nConc. máx.: 80 mg/mL (piperacilina)",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "Eurofarma",
+        via: "EV",
+        reconstituicao: "20 mL AD (VF=23 mL) → 24h TA / 48h REF\n20 mL SF 0,9% (VF=23 mL) → 24h TA / 48h REF\n20 mL SG 5% (VF=23 mL) → 24h TA / 48h REF",
+        estab_reconst: "24h TA / 48h REF",
+        diluicao: "SF 0,9% | SG 5% | AD (vol. máx. 50 mL)\nConc. usual: 20–80 mg/mL (piperacilina)\nConc. máx.: 80 mg/mL (piperacilina)",
+        estab_dil: "24h TA / 48h REF"
+      }
+    ]
+  },
+  {
+    name: "Polimixina B 500.000 UI",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "EV / IM",
+        reconstituicao: "IM: 2 mL AD → 72h REF\nEV: 2 mL AD → 72h REF | 10 mL SF 0,9% → 24h TA / 72h REF",
+        estab_reconst: "IM: 72h REF | EV: 72h REF (SF: 24h TA / 72h REF)",
+        diluicao: "SF 0,9% | SG 5%\nConc. máx.: 1667 UI/mL",
+        estab_dil: "24h TA / 72h REF"
+      }
+    ]
+  },
+  {
+    name: "Teicoplanina 200 mg / 400 mg",
+    mav: false,
+    brands: [
+      {
+        label: "União Química",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD (diluente próprio) → 24h REF\nEV: 3 mL AD (diluente próprio) → 24h REF",
+        estab_reconst: "24h REF",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. usual: 0,4–2 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      },
+      {
+        label: "Cristália",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD (diluente próprio) → 24h REF\nEV: 3 mL AD (diluente próprio) → 24h REF",
+        estab_reconst: "24h REF",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: 0,4–2 mg/mL",
+        estab_dil: "24h REF"
+      },
+      {
+        label: "ABL",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD → 48h TA / 7 dias REF\nEV: 3 mL AD → 48h TA / 7 dias REF",
+        estab_reconst: "48h TA / 7 dias REF",
+        diluicao: "SF 0,9% | Ringer Lactato | SG 5%\nConc. usual: 2 mg/mL",
+        estab_dil: "24h TA / 7 dias REF"
+      }
+    ]
+  },
+  {
+    name: "Teicoplanina 400 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "EV / IM",
+        reconstituicao: "IM: 3 mL AD → 48h TA / 11 dias REF\nEV: 3 mL AD → 48h TA / 11 dias REF",
+        estab_reconst: "48h TA / 11 dias REF",
+        diluicao: "SF 0,9%: 2 mg/mL (48h REF) / 10 mg/mL (7 dias REF)\nRinger Lactato: 0,4 mg/mL (48h TA)\nSG 5%: 2 mg/mL (7 dias REF)",
+        estab_dil: "SF: 48h REF / 7 dias REF; Ringer: 48h TA; SG5%: 7 dias REF"
+      }
+    ]
+  },
+  {
+    name: "Tigeciclina 50 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Pfizer",
+        via: "EV",
+        reconstituicao: "5,3 mL SF 0,9% ou 5,3 mL SG 5% → USO IMEDIATO",
+        estab_reconst: "USO IMEDIATO",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. usual: 0,5–1 mg/mL\nConc. máx.: 1 mg/mL",
+        estab_dil: "USO IMEDIATO"
+      }
+    ]
+  },
+  {
+    name: "Vancomicina 500 mg",
+    mav: false,
+    brands: [
+      {
+        label: "ABL / Fresenius Kabi / Teuto",
+        via: "EV",
+        reconstituicao: "10 mL AD (VF=10,2 mL) → 24h TA / 14 dias REF",
+        estab_reconst: "24h TA / 14 dias REF",
+        diluicao: "SF 0,9% | SG 5% | Ringer Lactato\nConc. usual: ≤ 5 mg/mL\nConc. máx.: 10 mg/mL",
+        estab_dil: "24h TA / 14 dias REF (SF) | 24h TA / 96h REF (Ringer)"
+      },
+      {
+        label: "Blau",
+        via: "EV",
+        reconstituicao: "10 mL AD (VF=10,2 mL) → 24h TA",
+        estab_reconst: "24h TA",
+        diluicao: "SF 0,9% | SG 5%\nConc. usual: ≤ 5 mg/mL\nConc. máx.: 10 mg/mL",
+        estab_dil: "24h TA"
+      }
+    ]
+  },
+  {
+    name: "Voriconazol 200 mg",
+    mav: false,
+    brands: [
+      {
+        label: "Eurofarma",
+        via: "EV",
+        reconstituicao: "19 mL AD (VF=20 mL) → 24h REF",
+        estab_reconst: "24h REF",
+        diluicao: "SF 0,9% | SG 5% | SGF 5%+0,9% | Ringer Lactato\nConc. usual: 0,5–5 mg/mL\nConc. máx.: 5 mg/mL",
+        estab_dil: "24h REF"
+      },
+      {
+        label: "Cristália",
+        via: "EV",
+        reconstituicao: "19 mL AD (VF=20 mL) → 24h REF",
+        estab_reconst: "24h REF",
+        diluicao: "SF 0,9% | SG 5% | SGF 5%+0,9% | Ringer Lactato\nConc. usual: 0,5–5 mg/mL\nConc. máx.: 5 mg/mL",
+        estab_dil: "24h REF"
+      }
+    ]
+  }
+];
+
+// ─── RENDER SIDEBAR ─────────────────────────────────────────────────────────
+function renderSidebar(list) {
+  const sidebar = document.getElementById('sidebar');
+  if (!list.length) {
+    sidebar.innerHTML = '<div style="padding:1.25rem;color:var(--text-muted);font-size:0.8rem;">Nenhum medicamento encontrado.</div>';
+    document.getElementById('pillCount').textContent = '0 resultados';
+    return;
+  }
+  document.getElementById('pillCount').textContent = list.length + ' medicamento' + (list.length !== 1 ? 's' : '');
+
+  let html = '<div class="sidebar-section-label">Antimicrobianos</div>';
+  list.forEach((d, i) => {
+    const nameLines = d.name.split('\n');
+    html += `<button class="drug-btn" id="btn-${i}" onclick="showDrug(${i})">
+      ${d.mav ? '<span class="mav-dot" title="Medicamento de Alta Vigilância"></span>' : ''}
+      <div>
+        <div class="drug-btn-name">${nameLines[0]}</div>
+        ${nameLines[1] ? `<div class="drug-btn-dose">${nameLines[1]}</div>` : ''}
+      </div>
+    </button>`;
+  });
+  sidebar.innerHTML = html;
+}
+
+// ─── SHOW DRUG ───────────────────────────────────────────────────────────────
+let currentDrug = null;
+let currentBrand = 0;
+let filteredDrugs = [...drugs];
+
+function showDrug(idx, brandIdx = 0) {
+  currentDrug = idx;
+  currentBrand = brandIdx;
+  const d = filteredDrugs[idx];
+
+  // highlight active btn
+  document.querySelectorAll('.drug-btn').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + idx);
+  if (btn) { btn.classList.add('active'); btn.scrollIntoView({block:'nearest'}); }
+
+  const b = d.brands[brandIdx];
+  const nameLines = d.name.split('\n');
+
+  // brand tabs
+  const tabsHTML = d.brands.length > 1
+    ? `<div class="brands-nav">${d.brands.map((br, i) =>
+        `<button class="brand-tab ${i===brandIdx?'active':''}" onclick="showDrug(${idx},${i})">${br.label}</button>`
+      ).join('')}</div>`
+    : `<div class="brands-nav"><span class="brand-tab active">${b.label}</span></div>`;
+
+  const detail = document.getElementById('detail');
+  detail.innerHTML = `
+    <div class="drug-header animate-in">
+      <div>
+        <div class="drug-title">
+          ${nameLines[0]}
+          <span class="dose-badge">${nameLines[1] || ''}</span>
+        </div>
+        <div style="margin-top:0.6rem;">
+          <span class="via-tag">${b.via}</span>
+          ${d.mav ? '<span class="mav-badge">⚠ Alta Vigilância</span>' : ''}
+        </div>
+      </div>
+    </div>
+    ${tabsHTML}
+    <div class="cards-grid animate-in">
+      <div class="info-card reconst">
+        <div class="card-label">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+          Reconstituição
+        </div>
+        <div class="card-content">${fmt(b.reconstituicao)}</div>
+      </div>
+      <div class="info-card estab-r">
+        <div class="card-label">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Estabilidade pós-reconstituição
+        </div>
+        <div class="card-content">${fmt(b.estab_reconst)}</div>
+      </div>
+      <div class="info-card dil">
+        <div class="card-label">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v6m0 0-3-3m3 3 3-3M5 10l7 10 7-10H5z"/></svg>
+          Diluição
+        </div>
+        <div class="card-content">${fmt(b.diluicao)}</div>
+      </div>
+      <div class="info-card estab-d">
+        <div class="card-label">
+          <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Estabilidade pós-diluição
+        </div>
+        <div class="card-content">${fmt(b.estab_dil)}</div>
+      </div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text-muted);margin-top:0.5rem;">
+      TA = Temperatura ambiente (15–30°C) · REF = Refrigeração (2–8°C) · AD = Água destilada · SF = Soro fisiológico · SG = Soro glicosado
+    </div>
+  `;
+}
+
+function fmt(text) {
+  if (!text || text === '—') return '<span class="dash">Não aplicável</span>';
+  return text
+    .split('\n')
+    .map(line => `<div>${line}</div>`)
+    .join('');
+}
+
+// ─── FILTER ──────────────────────────────────────────────────────────────────
+function filterDrugs(q) {
+  const lower = q.toLowerCase().trim();
+  filteredDrugs = lower
+    ? drugs.filter(d =>
+        d.name.toLowerCase().includes(lower) ||
+        d.brands.some(b => b.label.toLowerCase().includes(lower))
+      )
+    : [...drugs];
+  renderSidebar(filteredDrugs);
+  // reset detail if current no longer visible
+  document.getElementById('detail').innerHTML = `
+    <div class="detail-placeholder">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2z"/></svg>
+      <p>Selecione um medicamento</p>
+    </div>`;
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+filteredDrugs = [...drugs];
+renderSidebar(filteredDrugs);
+</script>
+
+<footer class="footer-ref">
+  <div class="footer-ref-text">
+    <strong>Fonte:</strong> SOUTO, Gustavo Pereira de et al. <strong>Manual de reconstituição, diluição e estabilidade de medicamentos injetáveis:</strong> MN.UFCLI.002. Versão 1. Campina Grande: HUAC-UFCG/EBSERH, 2024. 30 p. Processo SEi 23769.018731/2024-19.
+  </div>
+  <div class="footer-modified">Modificado em: 29/04/2026 por Monalisa Brito</div>
+</footer>
+</body>
+</html>
